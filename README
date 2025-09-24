@@ -1,0 +1,58 @@
+micro-draw.h
+------------
+
+Header-only software renderer in C99.
+
+Author:  Giovanni Santini
+Mail:    giovanni.santini@proton.me
+License: MIT
+
+
+Features
+--------
+
+ - render lines
+ - render rectangles
+ - render circles
+ - render triangles
+ - RGBA, easy to add other formats
+ - PPM file reading and writing
+
+
+Usage
+-----
+
+Do this:
+
+  #define MICRO_DRAW_IMPLEMENTATION
+
+before you include this file in *one* C or C++ file to create the
+implementation.
+
+i.e. it should look like this:
+
+  #include ...
+  #include ...
+  #include ...
+  #define MICRO_DRAW_IMPLEMENTATION
+  #include "micro-draw.h"
+
+You can tune the library by #defining certain values. See the
+"Config" comments under "Configuration" below.
+
+To enable PPM related functions, you need to #define MIRO_DRAW_PPM.
+More info: https://en.wikipedia.org/wiki/Netpbm
+
+The usage is quite straight forward, you supply a data buffer to a
+micro-draw.h function which will fill the pixels accordingly. For
+example, you can use this buffer to render a frame on screen, or to
+save it as an image file, or do whatever you want.
+
+Check out some example in the `test` directory.
+
+
+TODO
+----
+
+ - Implement micro_draw_from_ppm
+
