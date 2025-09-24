@@ -1,7 +1,7 @@
 ## --- Settings ---
 
 CFLAGS=-Wall -Werror -Wpedantic -ggdb -std=c99
-LDFLAGS=-lX11 -lXrandr -lGL
+LDFLAGS=-lX11 -lXrandr
 CC=gcc
 
 OUT_NAME=example
