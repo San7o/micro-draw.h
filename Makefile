@@ -33,7 +33,7 @@ $(OUT_NAME): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %: %.c
-	$(CC) $(LDFLAGS) $(CFLAGS) $< -o $@
+	$(CC) $< -o $@ $(LDFLAGS) $(CFLAGS)
 
 clean:
 	rm $(OBJ) 2>/dev/null || :
