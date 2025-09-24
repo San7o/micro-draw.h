@@ -58,7 +58,9 @@
 // ----
 //
 //  - Implement micro_draw_from_ppm
+//  - Add text rendering
 //
+
 
 #ifndef _MICRO_DRAW_H_
 #define _MICRO_DRAW_H_
