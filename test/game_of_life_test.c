@@ -83,17 +83,18 @@ int main(void)
   bool *universe = universe_buf;
   bool *scratch  = scratch_buf;
   
-	RGFW_window* win = RGFW_createWindow("game of life",
+  RGFW_window* win = RGFW_createWindow("game of life",
                                        0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,
                                        RGFW_windowCenter
                                        | RGFW_windowNoResize);
-	RGFW_event event;
+  RGFW_event event;
   // Note: X11 uses RGBA
   unsigned char* screen = malloc(SCREEN_WIDTH*SCREEN_HEIGHT
                                  *micro_draw_get_channels(MICRO_DRAW_RGBA8));
 
   RGFW_surface *surface =
-    RGFW_window_createSurface(win, (u8*)screen, SCREEN_WIDTH, SCREEN_HEIGHT, RGFW_formatRGBA8);
+    RGFW_window_createSurface(win, (u8*)screen,
+                              SCREEN_WIDTH, SCREEN_HEIGHT, RGFW_formatRGBA8);
 
   RGFW_window_setExitKey(win, RGFW_escape);
 
@@ -102,11 +103,11 @@ int main(void)
   unsigned char color_white[4] = {255, 255, 255, 255};
   unsigned char color_black[4] = {0, 0, 0, 255};
   
-	while (RGFW_window_shouldClose(win) == RGFW_FALSE)
+  while (RGFW_window_shouldClose(win) == RGFW_FALSE)
   {
     clock_t frame_start = clock();
 
-		while (RGFW_window_checkEvent(win, &event))
+    while (RGFW_window_checkEvent(win, &event))
     {
       if (event.type == RGFW_quit)
         break;
@@ -136,11 +137,11 @@ int main(void)
 
     clock_t frame_end = clock();
     delta_time += (double)(frame_end - frame_start) / CLOCKS_PER_SEC;
-	}
+  }
 
   RGFW_surface_free(surface);
   free(screen);
-	RGFW_window_close(win);
+  RGFW_window_close(win);
   
   return 0;
 }
