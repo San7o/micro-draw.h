@@ -11,10 +11,11 @@ License: MIT
 Features
 --------
 
- - render lines
- - render rectangles
- - render circles
- - render triangles
+ - draw lines
+ - draw rectangles
+ - draw circles
+ - draw triangles
+ - draw grids
  - RGBA, easy to add other formats
  - PPM file reading and writing
 
@@ -48,7 +49,21 @@ micro-draw.h function which will fill the pixels accordingly. For
 example, you can use this buffer to render a frame on screen, or to
 save it as an image file, or do whatever you want.
 
-Check out some example in the `test` directory.
+Check out some examples in the `test` directory.
+
+
+Code
+----
+
+The official git repository of micro-draw.h is hosted at:
+
+    https://github.com/San7o/micro-draw.h
+
+This is part of a bigger collection of header-only C99 libraries
+called "micro-headers", contributions are welcome:
+
+    https://github.com/San7o/micro-headers
+
 
 
 TODO

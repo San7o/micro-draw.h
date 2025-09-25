@@ -11,8 +11,8 @@ TEST_BINS=test/fill_rect_test\
           test/fill_circle_test\
           test/fill_triangle_test\
           test/line_test\
-          test/to_ppm_test
-
+          test/to_ppm_test\
+          test/game_of_life_test
 
 ## --- Commands ---
 

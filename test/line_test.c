@@ -34,13 +34,30 @@ int main(void)
 
     unsigned char color_white[4] = {255, 255, 255, 255};
     micro_draw_clear(data, WIDTH, HEIGHT, color_white, MICRO_DRAW_RGBA8);  
-    
+
     unsigned char color_red[4] = {255, 0, 0, 255};
+    
+    // slope
     micro_draw_line(data, WIDTH, HEIGHT,
                     WIDTH / 3, HEIGHT / 3,
                     WIDTH / 3 * 2, HEIGHT / 3 * 2,
-                    color_red, MICRO_DRAW_RGBA8);  
-  
+                    color_red, MICRO_DRAW_RGBA8);
+
+    // Horizontal
+    micro_draw_line(data, WIDTH, HEIGHT,
+                    WIDTH / 3, HEIGHT / 3,
+                    WIDTH / 3 * 2, HEIGHT / 3,
+                    color_red, MICRO_DRAW_RGBA8);
+
+    // Vertical
+    micro_draw_line(data, WIDTH, HEIGHT,
+                    WIDTH / 3, HEIGHT / 3,
+                    WIDTH / 3, HEIGHT / 3 * 2,
+                    color_red, MICRO_DRAW_RGBA8);
+    
+
+
+    
     RGFW_window_blitSurface(win, surface);
 	}
 

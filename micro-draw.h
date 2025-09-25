@@ -14,10 +14,11 @@
 // Features
 // --------
 //
-//  - render lines
-//  - render rectangles
-//  - render circles
-//  - render triangles
+//  - draw lines
+//  - draw rectangles
+//  - draw circles
+//  - draw triangles
+//  - draw grids
 //  - RGBA, easy to add other formats
 //  - PPM file reading and writing
 //
@@ -51,7 +52,20 @@
 // example, you can use this buffer to render a frame on screen, or to
 // save it as an image file, or do whatever you want.
 //
-// Check out some example in the `test` directory.
+// Check out some examples in the `test` directory.
+//
+//
+// Code
+// ----
+//
+// The official git repository of micro-draw.h is hosted at:
+//
+//     https://github.com/San7o/micro-draw.h
+//
+// This is part of a bigger collection of header-only C99 libraries
+// called "micro-headers", contributions are welcome:
+//
+//     https://github.com/San7o/micro-headers
 //
 //
 // TODO
@@ -149,6 +163,12 @@ void micro_draw_fill_triangle(unsigned char *data,
                               int c_x, int c_y,
                               unsigned char *color, MicroDrawPixel pixel);
 
+void micro_draw_grid(unsigned char* data,
+                     int data_width, int data_height,
+                     int columns, int rows,
+                     unsigned char* color, MicroDrawPixel pixel);
+
+  
 #ifdef MICRO_DRAW_PPM
 
 MicroDrawError
@@ -218,6 +238,7 @@ void micro_draw_pixel(unsigned char* data,
   return;
 }
 
+#include <stdio.h> // TODO: remove
 void micro_draw_line(unsigned char* data,
                      int data_width, int data_height,
                      int a_x, int a_y,
@@ -227,6 +248,22 @@ void micro_draw_line(unsigned char* data,
   // Line equation
   double m = (a_y - b_y) / (double)(a_x - b_x);
   double q = a_y - m * a_x;
+  int is_steep = (m > 1 || m < -1);
+
+  if (is_steep)
+  {
+    // Transpose the image
+    int tmp = a_x;
+    a_x = a_y;
+    a_y = tmp;
+
+    tmp = b_x;
+    b_x = b_y;
+    b_y = tmp;
+
+    m = (a_y - b_y) / (double)(a_x - b_x);
+    q = a_y - m * a_x;
+  }
 
   int start, end;
   if (a_x > b_x)
@@ -239,12 +276,27 @@ void micro_draw_line(unsigned char* data,
     start = a_x;
     end = b_x;
   }
-  
-  for (int p_x = start; p_x < end; ++p_x)
+
+  if (is_steep)
   {
-    int p_y = m * p_x + q;
-    micro_draw_pixel(data, data_width, data_height,
-                     p_x, p_y, color, pixel);
+    // Iterate by columns
+    for (int p_x = start; p_x < end; ++p_x)
+    {
+      int p_y = m * p_x + q;
+      // Retranspose the image
+      micro_draw_pixel(data, data_width, data_height,
+                       p_y, p_x, color, pixel);
+    }
+  }
+  else
+  {
+    // Transposed
+    for (int p_x = start; p_x < end; ++p_x)
+    {
+      int p_y = m * p_x + q;
+      micro_draw_pixel(data, data_width, data_height,
+                       p_x, p_y, color, pixel);
+    }
   }
   
   return;
@@ -396,6 +448,30 @@ void micro_draw_fill_triangle(unsigned char *data,
     }
   }
 
+  return;
+}
+
+  
+void micro_draw_grid(unsigned char* data,
+                     int data_width, int data_height,
+                     int columns, int rows,
+                     unsigned char* color, MicroDrawPixel pixel)
+{
+  // Draw columns
+  for (int x = 0; x < data_width; x += data_width / columns)
+  {
+    micro_draw_line(data, data_width, data_height,
+                     x, 0, x, data_height,
+                     color, pixel);
+  }
+  
+  // Draw rows
+  for (int y = 0; y < data_height; y += data_height / rows)
+  {
+    micro_draw_line(data, data_width, data_height,
+                     0, y, data_width, y,
+                     color, pixel);
+  }
   return;
 }
 
