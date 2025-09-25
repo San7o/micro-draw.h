@@ -10,11 +10,26 @@
 #include "RGFW.h"
 
 #include <time.h>
+#include <stdlib.h>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #define GRID_WIDTH 25
 #define GRID_HEIGHT 25
 #define SCREEN_WIDTH 500
 #define SCREEN_HEIGHT 500
+
+typedef struct {
+  bool *universe;
+  bool *scratch;
+  RGFW_window* win;
+  unsigned char *screen;
+  RGFW_surface *surface;
+  double delta_time;
+  double fps;
+} Application;
 
 void draw_cells(bool *universe, int universe_width, int universe_height,
                 unsigned char *screen, int screen_width, int screen_height,
@@ -47,10 +62,58 @@ void draw_cells(bool *universe, int universe_width, int universe_height,
   return;
 }
 
+void loop(void *arg)
+{
+  Application *app = (Application*) arg;
+  unsigned char color_white[4] = {255, 255, 255, 255};
+  unsigned char color_black[4] = {0, 0, 0, 255};
+  
+  RGFW_event event;
+  clock_t frame_start = clock();
+
+  while (RGFW_window_checkEvent(app->win, &event))
+  {
+    if (event.type == RGFW_quit)
+      break;
+  }
+
+  #ifndef __EMSCRIPTEN__
+  if (app->delta_time > 1 / app->fps)
+  {
+  #endif
+    // Draw
+    app->delta_time = 0;
+
+    game_of_life_simulate(&app->universe, &app->scratch,
+                          GRID_WIDTH, GRID_HEIGHT);
+      
+    micro_draw_clear(app->screen, SCREEN_WIDTH, SCREEN_HEIGHT,
+                     color_white, MICRO_DRAW_RGBA8);  
+
+    draw_cells(app->universe, GRID_WIDTH, GRID_HEIGHT,
+               app->screen, SCREEN_WIDTH, SCREEN_HEIGHT,
+               color_black, color_white, MICRO_DRAW_RGBA8);
+
+    micro_draw_grid(app->screen, SCREEN_WIDTH, SCREEN_HEIGHT,
+                    GRID_WIDTH, GRID_HEIGHT,
+                    color_black, MICRO_DRAW_RGBA8);
+      
+    RGFW_window_blitSurface(app->win, app->surface);
+    
+  #ifndef __EMSCRIPTEN__
+   }
+  #endif
+
+  clock_t frame_end = clock();
+  app->delta_time += (double)(frame_end - frame_start) / CLOCKS_PER_SEC;
+}
+
 int main(void)
 {
+  Application app;
+  
   // Acorn
-  bool universe_buf[GRID_WIDTH*GRID_HEIGHT] = {
+  bool universe[GRID_WIDTH*GRID_HEIGHT] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -77,71 +140,37 @@ int main(void)
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   };
-  bool scratch_buf[GRID_WIDTH*GRID_HEIGHT];
-
-  // Arrays do not work, you need to use pointers
-  bool *universe = universe_buf;
-  bool *scratch  = scratch_buf;
+  bool scratch[GRID_WIDTH*GRID_HEIGHT];
+  app.universe = universe;
+  app.scratch = scratch;
   
-  RGFW_window* win = RGFW_createWindow("game of life",
-                                       0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,
-                                       RGFW_windowCenter
-                                       | RGFW_windowNoResize);
-  RGFW_event event;
+  app.win = RGFW_createWindow("game of life",
+                              0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,
+                              RGFW_windowCenter
+                              | RGFW_windowNoResize);
   // Note: X11 uses RGBA
-  unsigned char* screen = malloc(SCREEN_WIDTH*SCREEN_HEIGHT
-                                 *micro_draw_get_channels(MICRO_DRAW_RGBA8));
+  app.screen = malloc(SCREEN_WIDTH*SCREEN_HEIGHT
+                      *micro_draw_get_channels(MICRO_DRAW_RGBA8));
 
-  RGFW_surface *surface =
-    RGFW_window_createSurface(win, (u8*)screen,
+  app.surface =
+    RGFW_window_createSurface(app.win, (u8*)app.screen,
                               SCREEN_WIDTH, SCREEN_HEIGHT, RGFW_formatRGBA8);
 
-  RGFW_window_setExitKey(win, RGFW_escape);
+  RGFW_window_setExitKey(app.win, RGFW_escape);
 
-  double delta_time = 0;
-  double fps = 5;
-  unsigned char color_white[4] = {255, 255, 255, 255};
-  unsigned char color_black[4] = {0, 0, 0, 255};
-  
-  while (RGFW_window_shouldClose(win) == RGFW_FALSE)
-  {
-    clock_t frame_start = clock();
+  app.delta_time = 0;
+  app.fps = 5;
 
-    while (RGFW_window_checkEvent(win, &event))
-    {
-      if (event.type == RGFW_quit)
-        break;
-    }
+  #ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop_arg(loop, &app, 3, 1);
+  #else
+  while (RGFW_window_shouldClose(app.win) == RGFW_FALSE)
+    loop(&app);
+  #endif // __EMSCRIPTEN__
 
-    if (delta_time > 1 / fps)
-    {
-      // Draw
-      delta_time = 0;
-
-      game_of_life_simulate(&universe, &scratch,
-                            GRID_WIDTH, GRID_HEIGHT);
-      
-      micro_draw_clear(screen, SCREEN_WIDTH, SCREEN_HEIGHT,
-                       color_white, MICRO_DRAW_RGBA8);  
-
-      draw_cells(universe, GRID_WIDTH, GRID_HEIGHT,
-                 screen, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 color_black, color_white, MICRO_DRAW_RGBA8);
-
-      micro_draw_grid(screen, SCREEN_WIDTH, SCREEN_HEIGHT,
-                      GRID_WIDTH, GRID_HEIGHT,
-                      color_black, MICRO_DRAW_RGBA8);
-      
-      RGFW_window_blitSurface(win, surface);
-    }
-
-    clock_t frame_end = clock();
-    delta_time += (double)(frame_end - frame_start) / CLOCKS_PER_SEC;
-  }
-
-  RGFW_surface_free(surface);
-  free(screen);
-  RGFW_window_close(win);
+  RGFW_surface_free(app.surface);
+  free(app.screen);
+  RGFW_window_close(app.win);
   
   return 0;
 }

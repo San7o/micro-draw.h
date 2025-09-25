@@ -47,7 +47,7 @@
 // To enable PPM related functions, you need to #define MIRO_DRAW_PPM.
 // More info: https://en.wikipedia.org/wiki/Netpbm
 //
-// The usage is quite straight forward, you supply a data buffer to a
+// The usage is quite straight forward: you supply a data buffer to a
 // micro-draw.h function which will fill the pixels accordingly. For
 // example, you can use this buffer to render a frame on screen, or to
 // save it as an image file, or do whatever you want.
@@ -74,7 +74,6 @@
 //  - Implement micro_draw_from_ppm
 //  - Add text rendering
 //
-
 
 #ifndef _MICRO_DRAW_H_
 #define _MICRO_DRAW_H_
