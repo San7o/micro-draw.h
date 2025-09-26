@@ -6,7 +6,6 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-#include <math.h>
 #include <time.h>
 
 #define WIDTH  1280

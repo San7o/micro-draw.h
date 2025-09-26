@@ -167,6 +167,11 @@ void micro_draw_grid(unsigned char* data,
                      int columns, int rows,
                      unsigned char* color, MicroDrawPixel pixel);
 
+
+void micro_get_color(unsigned char* data,
+                     int data_width, int data_height,
+                     int x, int y,
+                     unsigned char** color, MicroDrawPixel pixel);
   
 #ifdef MICRO_DRAW_PPM
 
@@ -474,6 +479,22 @@ void micro_draw_grid(unsigned char* data,
   return;
 }
 
+void micro_get_color(unsigned char* data,
+                      int data_width, int data_height,
+                      int x, int y,
+                      unsigned char** color, MicroDrawPixel pixel)
+{
+  if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
+
+  int channel_size = micro_draw_get_channel_size(pixel); // bytes
+  size_t channels = micro_draw_get_channels(pixel);
+  int index = (y * data_width + x) * channels * channel_size;
+
+  *color = data + index;
+  return;
+}
+
+  
 #ifdef MICRO_DRAW_PPM
 
 #include <stdio.h>

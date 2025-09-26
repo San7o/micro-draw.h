@@ -13,7 +13,8 @@ TEST_BINS=test/fill_rect_test\
           test/line_test\
           test/to_ppm_test\
           test/game_of_life_test\
-          test/mandelbrot_test
+          test/mandelbrot_test\
+          test/upscale_nn_test
 
 EMCC_FLAGS=-sEXPORTED_RUNTIME_METHODS=["HEAPU8","stringToNewUTF8"]\
            -sEXPORT_ALL=1\
