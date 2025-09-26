@@ -159,13 +159,12 @@ int main(void)
   RGFW_window_setExitKey(app.win, RGFW_escape);
 
   app.delta_time = 0;
-  app.fps = 5;
+  app.fps = 3;
 
   #ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop_arg(loop, &app, 3, 1);
+  emscripten_set_main_loop_arg(loop, &app, app.fps, 1);
   #else
-  while (RGFW_window_shouldClose(app.win) == RGFW_FALSE)
-    loop(&app);
+  while (RGFW_window_shouldClose(app.win) == RGFW_FALSE) loop(&app);
   #endif // __EMSCRIPTEN__
 
   RGFW_surface_free(app.surface);

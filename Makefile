@@ -12,7 +12,8 @@ TEST_BINS=test/fill_rect_test\
           test/fill_triangle_test\
           test/line_test\
           test/to_ppm_test\
-          test/game_of_life_test
+          test/game_of_life_test\
+          test/mandelbrot_test
 
 EMCC_FLAGS=-sEXPORTED_RUNTIME_METHODS=["HEAPU8","stringToNewUTF8"]\
            -sEXPORT_ALL=1\
@@ -39,7 +40,7 @@ run: $(OUT_NAME)
 
 test: $(TEST_BINS)
 
-wasm: test/game_of_life_test.c
+wasm: test/game_of_life_test.c game-of-life.h
 	source ${EMCC_ENV} && emcc test/game_of_life_test.c -o html/game-of-life.html $(EMCC_FLAGS)
 
 .PHONY: html
@@ -51,8 +52,7 @@ html: wasm
 	cat ${HTML_OUTRO} >> ${OUT_INDEX_FILE}
 	rm ${TMP_FILE}
 
-
-$(OUT_NAME): $(OBJ)
+$(OUT_NAME): $(OBJ) game-of-life.h
 	$(CC) $(OBJ) $(LDFLAGS) $(CFLAGS) -o $(OUT_NAME)
 
 %.o: %.c
@@ -62,7 +62,7 @@ $(OUT_NAME): $(OBJ)
 	$(CC) $< -o $@ $(LDFLAGS) $(CFLAGS)
 
 clean:
-	rm $(OBJ) 2>/dev/null || :
+	rm $(OBJ) $(TEST_BINS) 2>/dev/null || :
 
 distclean:
 	rm $(OUT_NAME) 2>/dev/null || :
