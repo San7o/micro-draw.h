@@ -120,6 +120,11 @@ typedef enum {
   _MICRO_DRAW_ERROR_MAX,
 } MicroDrawError;
 
+#define MICRO_DRAW_FONT_HEIGHT 5
+#define MICRO_DRAW_FONT_WIDTH 5
+extern unsigned char
+micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH];
+  
 //
 // Function declarations
 //
@@ -195,6 +200,17 @@ micro_draw_from_ppm(const char *filename,
 //
 
 #ifdef MICRO_DRAW_IMPLEMENTATION
+
+unsigned char
+micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH] = {
+  ['a'] = {
+    { 0, 0, 0, 0, 1, },
+    { 0, 0, 1, 1, 1, },
+    { 0, 1, 0, 0, 1, },
+    { 0, 1, 0, 0, 1, },
+    { 0, 0, 1, 1, 1, },
+  },
+};
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 1,
                "Updated MicroDrawPixel, should also update micro_draw_get_channels");
