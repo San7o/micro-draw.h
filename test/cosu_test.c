@@ -107,7 +107,7 @@ void note_list_free(NoteList **list)
   return;
 }
 
-int parse_osu_map(char *filename, NodeList **nodes)
+int parse_osu_map(char *filename, NoteList **nodes)
 {
   // TODO
   return 0;
