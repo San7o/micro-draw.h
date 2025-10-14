@@ -1,9 +1,18 @@
-## --- Settings ---
+# SPDX-License-Identifier: MIT
+# Author:  Giovanni Santini
+# Mail:    giovanni.santini@proton.me
+# Github:  @San7o
 
+#
+# Compile flags
+#
 CFLAGS=-Wall -Werror -Wpedantic -ggdb -std=c99
 LDFLAGS=-lX11 -lXrandr
 CC=gcc
 
+#
+# Project files
+#
 OUT_NAME=example
 OBJ=example.o
 
@@ -30,10 +39,9 @@ OUT_INDEX_FILE=html/index.html
 TMP_FILE=.tmp
 PANDOC_FLAGS=--standalone
 
-## --- Commands ---
-
-# --- Targets ---
-
+#
+# Commands
+#
 all: $(OUT_NAME)
 
 run: $(OUT_NAME)
@@ -41,6 +49,12 @@ run: $(OUT_NAME)
 	./$(OUT_NAME)
 
 test: $(TEST_BINS)
+
+clean:
+	rm -f $(OBJ) $(TEST_BINS)
+
+distclean:
+	rm -f $(OUT_NAME)
 
 wasm: test/game_of_life_test.c test/game-of-life.h
 	source ${EMCC_ENV} && emcc test/game_of_life_test.c -o html/game-of-life.html $(EMCC_FLAGS)
@@ -62,9 +76,3 @@ $(OUT_NAME): $(OBJ) test/game-of-life.h
 
 %: %.c
 	$(CC) $< -o $@ $(LDFLAGS) $(CFLAGS)
-
-clean:
-	rm $(OBJ) $(TEST_BINS) 2>/dev/null || :
-
-distclean:
-	rm $(OUT_NAME) 2>/dev/null || :

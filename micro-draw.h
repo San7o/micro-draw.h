@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 //
 // micro-draw.h
-// ------------
+// ============
 //
 // Header-only software renderer in C99.
 //
@@ -75,8 +75,8 @@
 //  - Add text rendering
 //
 
-#ifndef _MICRO_DRAW_H_
-#define _MICRO_DRAW_H_
+#ifndef MICRO_DRAW
+#define MICRO_DRAW
 
 #define MICRO_DRAW_MAJOR 0
 #define MICRO_DRAW_MINOR 1
@@ -94,9 +94,12 @@ extern "C" {
   #define MICRO_DRAW_PPM
 #endif
 
-#include <stddef.h>
-#include <string.h>
-#include <assert.h>
+// Config: Prefix for all functions
+// For function inlining, set this to `static inline` and then define
+// the implementation in all the files
+#ifndef MICRO_DRAW_DEF
+  #define MICRO_DRAW_DEF extern
+#endif
 
 //
 // Macros
@@ -107,6 +110,8 @@ extern "C" {
 //
 // Types
 //
+
+#include <stddef.h>
 
 typedef enum {
   MICRO_DRAW_RGBA8 = 0,
@@ -130,64 +135,72 @@ micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH];
 //
 
 // Return the number of channels of a pixel type
-size_t micro_draw_get_channels(MicroDrawPixel pixel);
+MICRO_DRAW_DEF size_t micro_draw_get_channels(MicroDrawPixel pixel);
 
 // Returns the number of bytes of a single channel if a pixel type
-size_t micro_draw_get_channel_size(MicroDrawPixel pixel);
+MICRO_DRAW_DEF size_t micro_draw_get_channel_size(MicroDrawPixel pixel);
 
-void micro_draw_pixel(unsigned char* data,
-                      int data_width, int data_height,
-                      int x, int y,
-                      unsigned char* color, MicroDrawPixel pixel);
+MICRO_DRAW_DEF void
+micro_draw_pixel(unsigned char* data,
+                 int data_width, int data_height,
+                 int x, int y,
+                 unsigned char* color, MicroDrawPixel pixel);
 
-void micro_draw_line(unsigned char* data,
+MICRO_DRAW_DEF void
+micro_draw_line(unsigned char* data,
+                int data_width, int data_height,
+                int a_x, int a_y,
+                int b_x, int b_y,
+                unsigned char* color, MicroDrawPixel pixel);
+
+MICRO_DRAW_DEF void
+micro_draw_clear(unsigned char* data,
+                 int data_width, int data_height,
+                 unsigned char *color, MicroDrawPixel pixel);
+
+MICRO_DRAW_DEF void
+micro_draw_fill_rect(unsigned char* data,
                      int data_width, int data_height,
-                     int a_x, int a_y,
-                     int b_x, int b_y,
-                     unsigned char* color, MicroDrawPixel pixel);
+                     int x, int y, int w, int h,
+                     unsigned char *color, MicroDrawPixel pixel);
 
-void micro_draw_clear(unsigned char* data,
-                      int data_width, int data_height,
-                      unsigned char *color, MicroDrawPixel pixel);
+MICRO_DRAW_DEF void
+micro_draw_fill_circle(unsigned char* data,
+                       int data_width, int data_height,
+                       int center_x, int center_y, int radius,
+                       unsigned char *color, MicroDrawPixel pixel);
 
-void micro_draw_fill_rect(unsigned char* data,
-                          int data_width, int data_height,
-                          int x, int y, int w, int h,
-                          unsigned char *color, MicroDrawPixel pixel);
+MICRO_DRAW_DEF void
+micro_draw_fill_triangle(unsigned char *data,
+                         int data_width, int data_height,
+                         int a_x, int a_y,
+                         int b_x, int b_y,
+                         int c_x, int c_y,
+                         unsigned char *color, MicroDrawPixel pixel);
 
-void micro_draw_fill_circle(unsigned char* data,
-                            int data_width, int data_height,
-                            int center_x, int center_y, int radius,
-                            unsigned char *color, MicroDrawPixel pixel);
-
-void micro_draw_fill_triangle(unsigned char *data,
-                              int data_width, int data_height,
-                              int a_x, int a_y,
-                              int b_x, int b_y,
-                              int c_x, int c_y,
-                              unsigned char *color, MicroDrawPixel pixel);
-
-void micro_draw_grid(unsigned char* data,
-                     int data_width, int data_height,
-                     int columns, int rows,
-                     unsigned char* color, MicroDrawPixel pixel);
+MICRO_DRAW_DEF void
+micro_draw_grid(unsigned char* data,
+                int data_width, int data_height,
+                int columns, int rows,
+                unsigned char* color, MicroDrawPixel pixel);
 
 
-void micro_get_color(unsigned char* data,
-                     int data_width, int data_height,
-                     int x, int y,
-                     unsigned char** color, MicroDrawPixel pixel);
+MICRO_DRAW_DEF void
+micro_get_color(unsigned char* data,
+                int data_width, int data_height,
+                int x, int y,
+                unsigned char** color, MicroDrawPixel pixel);
   
 #ifdef MICRO_DRAW_PPM
 
-MicroDrawError
+MICRO_DRAW_DEF MicroDrawError
 micro_draw_to_ppm(const char *filename,
                   unsigned char *data,
                   int data_width, int data_height,
                   MicroDrawPixel pixel);
 
 
-MicroDrawError
+MICRO_DRAW_DEF MicroDrawError
 micro_draw_from_ppm(const char *filename,
                     unsigned char **data,
                     int *data_width, int *data_height,
@@ -200,6 +213,9 @@ micro_draw_from_ppm(const char *filename,
 //
 
 #ifdef MICRO_DRAW_IMPLEMENTATION
+
+#include <string.h>
+#include <assert.h>
 
 unsigned char
 micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH] = {
@@ -214,7 +230,7 @@ micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH] = {
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 1,
                "Updated MicroDrawPixel, should also update micro_draw_get_channels");
-size_t micro_draw_get_channels(MicroDrawPixel pixel)
+MICRO_DRAW_DEF size_t micro_draw_get_channels(MicroDrawPixel pixel)
 {
   switch(pixel)
   {
@@ -229,7 +245,7 @@ size_t micro_draw_get_channels(MicroDrawPixel pixel)
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 1,
                "Updated MicroDrawPixel, should also update micro_draw_get_channel_size");
-size_t micro_draw_get_channel_size(MicroDrawPixel pixel)
+MICRO_DRAW_DEF size_t micro_draw_get_channel_size(MicroDrawPixel pixel)
 {
   switch(pixel)
   {
@@ -242,10 +258,11 @@ size_t micro_draw_get_channel_size(MicroDrawPixel pixel)
   return 0;
 }
 
-void micro_draw_pixel(unsigned char* data,
-                      int data_width, int data_height,
-                      int x, int y,
-                      unsigned char* color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_pixel(unsigned char* data,
+                 int data_width, int data_height,
+                 int x, int y,
+                 unsigned char* color, MicroDrawPixel pixel)
 {
   if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
 
@@ -258,12 +275,12 @@ void micro_draw_pixel(unsigned char* data,
   return;
 }
 
-#include <stdio.h> // TODO: remove
-void micro_draw_line(unsigned char* data,
-                     int data_width, int data_height,
-                     int a_x, int a_y,
-                     int b_x, int b_y,
-                     unsigned char* color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_line(unsigned char* data,
+                int data_width, int data_height,
+                int a_x, int a_y,
+                int b_x, int b_y,
+                unsigned char* color, MicroDrawPixel pixel)
 {
   // Line equation
   double m = (a_y - b_y) / (double)(a_x - b_x);
@@ -322,9 +339,10 @@ void micro_draw_line(unsigned char* data,
   return;
 }
 
-void micro_draw_clear(unsigned char* data,
-                      int data_width, int data_height,
-                      unsigned char *color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_clear(unsigned char* data,
+                 int data_width, int data_height,
+                 unsigned char *color, MicroDrawPixel pixel)
 {
   for (int row = 0; row < data_height; ++row)
     for (int col = 0; col < data_width; ++col)
@@ -332,10 +350,11 @@ void micro_draw_clear(unsigned char* data,
                        col, row, color, pixel);
 }
 
-void micro_draw_fill_rect(unsigned char* data,
-                          int data_width, int data_height,
-                          int x, int y, int w, int h,
-                          unsigned char *color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_fill_rect(unsigned char* data,
+                     int data_width, int data_height,
+                     int x, int y, int w, int h,
+                     unsigned char *color, MicroDrawPixel pixel)
 {
   for (int row = y; row < h + y && row < data_height; ++row)
   {
@@ -350,10 +369,11 @@ void micro_draw_fill_rect(unsigned char* data,
   return;
 }
 
-void micro_draw_fill_circle(unsigned char* data,
-                            int data_width, int data_height,
-                            int center_x, int center_y, int radius,
-                            unsigned char *color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_fill_circle(unsigned char* data,
+                       int data_width, int data_height,
+                       int center_x, int center_y, int radius,
+                       unsigned char *color, MicroDrawPixel pixel)
 {
   for (int row = center_y - radius; row < center_y + radius && row < data_height; ++row)
   {
@@ -372,7 +392,6 @@ void micro_draw_fill_circle(unsigned char* data,
 
   return;
 }
-
 
 // Get the orientation of three 2D points (a, b, c).
 //
@@ -403,42 +422,22 @@ void micro_draw_fill_circle(unsigned char* data,
 // See also: Fabian Giesen,
 // “The barycentric conspiracies”
 // https://fgiesen.wordpress.com/2013/02/06/the-barycentric-conspirac/
-int _micro_draw_orient2D(int a_x, int a_y, int b_x, int b_y, int c_x, int c_y)
-{
-    return (b_x-a_x)*(c_y-a_y) - (b_y-a_y)*(c_x-a_x);
-}
+#define _micro_draw_orient2D(a_x, a_y, b_x, b_y, c_x, c_y) \
+    ( ((b_x) - (a_x)) * ((c_y) - (a_y)) - ((b_y) - (a_y)) * ((c_x) - (a_x)) )
 
-int _micro_draw_min3(int a, int b, int c)
-{
-  if (a < b && a < c) return a;
-  if (b < a && b < c) return b;
-  return c;
-}
-
-int _micro_draw_max3(int a, int b, int c)
-{
-  if (a > b && a > c) return a;
-  if (b > a && b > c) return b;
-  return c;
-}
-
-int _micro_draw_min(int a, int b)
-{
-  return (a < b) ? a : b;
-}
-
-int _micro_draw_max(int a, int b)
-{
-  return (a > b) ? a : b;
-}
+#define _micro_draw_min(a, b) ((a) < (b) ? (a) : (b))
+#define _micro_draw_max(a, b) ((a) > (b) ? (a) : (b))
+#define _micro_draw_min3(a, b, c) (_micro_draw_min(_micro_draw_min((a), (b)), (c)))
+#define _micro_draw_max3(a, b, c) (_micro_draw_max(_micro_draw_max((a), (b)), (c)))
 
 // https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
-void micro_draw_fill_triangle(unsigned char *data,
-                              int data_width, int data_height,
-                              int a_x, int a_y,
-                              int b_x, int b_y,
-                              int c_x, int c_y,
-                              unsigned char *color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_fill_triangle(unsigned char *data,
+                         int data_width, int data_height,
+                         int a_x, int a_y,
+                         int b_x, int b_y,
+                         int c_x, int c_y,
+                         unsigned char *color, MicroDrawPixel pixel)
 {
   // Compute triangle bounding box
   int minX = _micro_draw_min3(a_x, b_x, c_x);
@@ -470,12 +469,12 @@ void micro_draw_fill_triangle(unsigned char *data,
 
   return;
 }
-
   
-void micro_draw_grid(unsigned char* data,
-                     int data_width, int data_height,
-                     int columns, int rows,
-                     unsigned char* color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_draw_grid(unsigned char* data,
+                int data_width, int data_height,
+                int columns, int rows,
+                unsigned char* color, MicroDrawPixel pixel)
 {
   // Draw columns
   for (int x = 0; x < data_width; x += data_width / columns)
@@ -495,10 +494,11 @@ void micro_draw_grid(unsigned char* data,
   return;
 }
 
-void micro_get_color(unsigned char* data,
-                      int data_width, int data_height,
-                      int x, int y,
-                      unsigned char** color, MicroDrawPixel pixel)
+MICRO_DRAW_DEF void
+micro_get_color(unsigned char* data,
+                int data_width, int data_height,
+                int x, int y,
+                unsigned char** color, MicroDrawPixel pixel)
 {
   if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
 
@@ -517,7 +517,7 @@ void micro_get_color(unsigned char* data,
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 1,
                "Updated MicroDrawPixel, should also update micro_draw_to_ppm");
-MicroDrawError
+MICRO_DRAW_DEF MicroDrawError
 micro_draw_to_ppm(const char *filename,
                   unsigned char *data,
                   int data_width, int data_height,
@@ -555,7 +555,7 @@ micro_draw_to_ppm(const char *filename,
   return error;
 }
 
-MicroDrawError
+MICRO_DRAW_DEF MicroDrawError
 micro_draw_from_ppm(const char* filename,
                     unsigned char **data,
                     int *data_width, int *data_height,
@@ -593,4 +593,4 @@ micro_draw_from_ppm(const char* filename,
 }
 #endif
 
-#endif // _MICRO_DRAW_H_
+#endif // MICRO_DRAW
