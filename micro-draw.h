@@ -578,6 +578,10 @@ micro_draw_from_ppm(const char* filename,
   }
 
   // TODO
+  (void) data;
+  (void) data_width;
+  (void) data_height;
+  (void) pixel;
   assert(0); // Not implemented
   
  done:
