@@ -77,13 +77,16 @@ void loop(void *arg)
       int x_frame = (x * FRAME_WIDTH) / (double)SCREEN_WIDTH;
       int y_frame = (y * FRAME_HEIGHT) / (double)SCREEN_HEIGHT;
       unsigned char *color;
-      micro_get_color(app->frame_data, FRAME_WIDTH, FRAME_HEIGHT,
-                      x_frame, y_frame, &color, MICRO_DRAW_RGBA8);
+      micro_draw_get_color(app->frame_data, FRAME_WIDTH, FRAME_HEIGHT,
+                           x_frame, y_frame, &color, MICRO_DRAW_RGBA8);
       micro_draw_pixel(app->screen_data, SCREEN_WIDTH, SCREEN_HEIGHT,
                        x, y,
                        color, MICRO_DRAW_RGBA8);
     }
   }
+
+  micro_draw_scaled(app->frame_data, FRAME_WIDTH, FRAME_HEIGHT, MICRO_DRAW_RGBA8,
+                    app->screen_data, SCREEN_WIDTH, SCREEN_HEIGHT, MICRO_DRAW_RGBA8);
   
   RGFW_window_blitSurface(app->win, app->surface);
     

@@ -125,7 +125,7 @@ typedef enum {
   _MICRO_DRAW_ERROR_MAX,
 } MicroDrawError;
 
-#define MICRO_DRAW_FONT_HEIGHT 5
+#define MICRO_DRAW_FONT_HEIGHT 6
 #define MICRO_DRAW_FONT_WIDTH 5
 extern unsigned char
 micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH];
@@ -186,11 +186,25 @@ micro_draw_grid(unsigned char* data,
 
 
 MICRO_DRAW_DEF void
-micro_get_color(unsigned char* data,
-                int data_width, int data_height,
-                int x, int y,
-                unsigned char** color, MicroDrawPixel pixel);
+micro_draw_get_color(unsigned char* data,
+                     int data_width, int data_height,
+                     int x, int y,
+                     unsigned char** color, MicroDrawPixel pixel);
+
+MICRO_DRAW_DEF void
+micro_draw_scaled(unsigned char* source_data,
+                  int source_data_width, int souce_data_height,
+                  MicroDrawPixel src_pixel,
+                  unsigned char* dest_data,
+                  int dest_data_width, int dest_data_height,
+                  MicroDrawPixel dest_pixel);
   
+MICRO_DRAW_DEF void
+micro_draw_text(unsigned char* data,
+                int data_width, int data_height,
+                int text_x, int text_y, int text_size, char* text,
+                unsigned char* color, MicroDrawPixel pixel);
+
 #ifdef MICRO_DRAW_PPM
 
 MICRO_DRAW_DEF MicroDrawError
@@ -216,17 +230,6 @@ micro_draw_from_ppm(const char *filename,
 
 #include <string.h>
 #include <assert.h>
-
-unsigned char
-micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH] = {
-  ['a'] = {
-    { 0, 0, 0, 0, 1, },
-    { 0, 0, 1, 1, 1, },
-    { 0, 1, 0, 0, 1, },
-    { 0, 1, 0, 0, 1, },
-    { 0, 0, 1, 1, 1, },
-  },
-};
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 1,
                "Updated MicroDrawPixel, should also update micro_draw_get_channels");
@@ -495,10 +498,10 @@ micro_draw_grid(unsigned char* data,
 }
 
 MICRO_DRAW_DEF void
-micro_get_color(unsigned char* data,
-                int data_width, int data_height,
-                int x, int y,
-                unsigned char** color, MicroDrawPixel pixel)
+micro_draw_get_color(unsigned char* data,
+                     int data_width, int data_height,
+                     int x, int y,
+                     unsigned char** color, MicroDrawPixel pixel)
 {
   if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
 
@@ -510,6 +513,50 @@ micro_get_color(unsigned char* data,
   return;
 }
 
+MICRO_DRAW_DEF void
+micro_draw_scaled(unsigned char* src_data,
+                  int src_data_width, int src_data_height,
+                  MicroDrawPixel src_pixel,
+                  unsigned char* dest_data,
+                  int dest_data_width, int dest_data_height,
+                  MicroDrawPixel dest_pixel)
+{
+  for (int y = 0; y < dest_data_height; ++y)
+  {
+    for (int x = 0; x < dest_data_width; ++x)
+    {
+      int x_frame = (x * src_data_width) / (double)dest_data_width;
+      int y_frame = (y * src_data_height) / (double)dest_data_height;
+      unsigned char *color;
+      micro_draw_get_color(src_data, src_data_width, src_data_height,
+                           x_frame, y_frame, &color, src_pixel);
+      micro_draw_pixel(dest_data, dest_data_width, dest_data_height,
+                       x, y, color, dest_pixel);
+    }
+  }
+  return;
+}
+
+MICRO_DRAW_DEF void
+micro_draw_text(unsigned char* data,
+                int data_width, int data_height,
+                int text_x, int text_y, int text_size, char* text,
+                unsigned char* color, MicroDrawPixel pixel)
+{
+  (void) data;
+  (void) data_width;
+  (void) data_height;
+  (void) text_x;
+  (void) text_y;
+  (void) text_size;
+  (void) text;
+  (void) color;
+  (void) pixel;
+  
+  assert(0 && "TODO");
+  
+  return;
+}
   
 #ifdef MICRO_DRAW_PPM
 
@@ -589,6 +636,18 @@ micro_draw_from_ppm(const char* filename,
   return error;
 }
 
+unsigned char
+micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH] = {
+  ['a'] = {
+    { 0, 0, 0, 0, 0 },
+    { 0, 1, 1, 0, 0 },
+    { 0, 0, 0, 1, 0 },
+    { 0, 1, 1, 1, 0 },
+    { 1, 0, 0, 1, 0 },
+    { 0, 1, 1, 1, 0 },
+  },
+};
+  
 #endif // MICRO_DRAW_PPM
 
 #endif // MICRO_DRAW_IMPLEMENTATION

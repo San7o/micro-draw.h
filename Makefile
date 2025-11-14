@@ -6,25 +6,25 @@
 #
 # Compile flags
 #
-CFLAGS=-Wall -Werror -Wpedantic -Wextra -ggdb -std=c99
-LDFLAGS=-lX11 -lXrandr
-CC=gcc
+CFLAGS  = -Wall -Werror -Wpedantic -Wextra -ggdb -std=c99
+LDFLAGS = -lX11 -lXrandr
+CC      = gcc
 
 #
 # Project files
 #
-OUT_NAME=example
-OBJ=example.o
+OUT_NAME = example
+OBJ      = example.o
 
-TEST_BINS=test/fill_rect_test\
-          test/fill_circle_test\
-          test/fill_triangle_test\
-          test/line_test\
-          test/to_ppm_test\
-          test/game_of_life_test\
-          test/mandelbrot_test\
-          test/upscale_nn_test\
-          test/cosu_test
+TEST_BINS = test/fill_rect_test\
+            test/fill_circle_test\
+            test/fill_triangle_test\
+            test/line_test\
+            test/to_ppm_test\
+            test/game_of_life_test\
+            test/mandelbrot_test\
+            test/upscale_nn_test\
+            test/cosu_test
 
 EMCC_FLAGS=-sEXPORTED_RUNTIME_METHODS=["HEAPU8","stringToNewUTF8"]\
            -sEXPORT_ALL=1\
@@ -32,12 +32,12 @@ EMCC_FLAGS=-sEXPORTED_RUNTIME_METHODS=["HEAPU8","stringToNewUTF8"]\
 EMCC_ENV=/home/$(shell whoami)/sources/emsdk/emsdk_env.sh
 
 ### Website
-INDEX_FILE=README
-HTML_INTRO=html/intro.html
-HTML_OUTRO=html/outro.html
-OUT_INDEX_FILE=html/index.html
-TMP_FILE=.tmp
-PANDOC_FLAGS=--standalone
+INDEX_FILE     = README
+HTML_INTRO     = html/intro.html
+HTML_OUTRO     = html/outro.html
+OUT_INDEX_FILE = html/index.html
+TMP_FILE       = .tmp
+PANDOC_FLAGS   = --standalone
 
 #
 # Commands
