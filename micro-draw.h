@@ -20,7 +20,7 @@
 //  - triangles
 //  - grids
 //  - text
-//  - RGBA, Black&White, easily add more formats
+//  - color RGBA, Black&White, easily add more formats
 //  - PPM file reading and writing
 //  - resize
 //  - overlap
@@ -103,12 +103,6 @@ extern "C" {
 #endif
 
 //
-// Macros
-//
-
-#define MICRO_DRAW_ABS(x) (((x) >= 0) ? (x) : -(x))
-
-//
 // Types
 //
 
@@ -129,6 +123,9 @@ typedef enum {
 #define MICRO_DRAW_FONT_WIDTH 5
 extern unsigned char
 micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH];
+// Default character size in pixel
+#define MICRO_DRAW_CHARACTER_PIXELS_X 50
+#define MICRO_DRAW_CHARACTER_PIXELS_Y 50
 
 //
 // Function declarations
@@ -486,6 +483,8 @@ micro_draw_fill_rect(unsigned char* data, int data_width, int data_height,
   return;
 }
 
+#define MICRO_DRAW_ABS(x) (((x) >= 0) ? (x) : -(x))
+
 MICRO_DRAW_DEF void
 micro_draw_fill_circle(unsigned char* data, int data_width, int data_height,
                        int center_x, int center_y, int radius,
@@ -684,9 +683,6 @@ static inline int _micro_draw_strlen(char* str)
   while (str[len] != '\0') len++;
   return len;
 }
-
-#define MICRO_DRAW_CHARACTER_PIXELS_X 50
-#define MICRO_DRAW_CHARACTER_PIXELS_Y 50
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "MicroDrawPixel has changed, make sure that color_dest in micro_draw_text is enough");
