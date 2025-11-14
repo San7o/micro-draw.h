@@ -112,8 +112,6 @@ extern "C" {
 // Types
 //
 
-#include <stddef.h>
-
 typedef enum {
   MICRO_DRAW_RGBA8 = 0,
   MICRO_DRAW_BLACK_WHITE,
@@ -139,10 +137,10 @@ micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH];
 // Color -------------------------------------------------------------
   
 // Return the number of channels of a pixel type
-MICRO_DRAW_DEF size_t micro_draw_get_channels(MicroDrawPixel pixel);
+MICRO_DRAW_DEF unsigned int micro_draw_get_channels(MicroDrawPixel pixel);
 
 // Returns the number of bytes of a single channel if a pixel type
-MICRO_DRAW_DEF size_t micro_draw_get_channel_size(MicroDrawPixel pixel);
+MICRO_DRAW_DEF unsigned int micro_draw_get_channel_size(MicroDrawPixel pixel);
 
 MICRO_DRAW_DEF void
 micro_draw_color_to_rgba8(unsigned char* color_src, MicroDrawPixel pixel_src,
@@ -246,11 +244,10 @@ micro_draw_from_ppm(const char *filename, unsigned char **data,
 #ifdef MICRO_DRAW_IMPLEMENTATION
 
 #include <assert.h>
-#include <string.h>
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "Updated MicroDrawPixel, should also update micro_draw_get_channels");
-MICRO_DRAW_DEF size_t micro_draw_get_channels(MicroDrawPixel pixel)
+MICRO_DRAW_DEF unsigned int micro_draw_get_channels(MicroDrawPixel pixel)
 {
   switch(pixel)
   {
@@ -267,7 +264,7 @@ MICRO_DRAW_DEF size_t micro_draw_get_channels(MicroDrawPixel pixel)
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "Updated MicroDrawPixel, should also update micro_draw_get_channel_size");
-MICRO_DRAW_DEF size_t micro_draw_get_channel_size(MicroDrawPixel pixel)
+MICRO_DRAW_DEF unsigned int micro_draw_get_channel_size(MicroDrawPixel pixel)
 {
   switch(pixel)
   {
@@ -346,6 +343,14 @@ micro_draw_color_convert(unsigned char *color_src, MicroDrawPixel pixel_src,
   return;
 }
 
+static inline void *
+_micro_draw_memcpy(void *dest, const void *src, unsigned int n)
+{
+  for (unsigned int i = 0; i < n; ++i)
+    ((char*)dest)[i] = ((char*)src)[i];
+  return dest;
+}
+  
 MICRO_DRAW_DEF void
 micro_draw_pixel(unsigned char* data, int data_width, int data_height,
                  int x, int y, unsigned char* color, MicroDrawPixel pixel)
@@ -353,10 +358,10 @@ micro_draw_pixel(unsigned char* data, int data_width, int data_height,
   if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
 
   int channel_size = micro_draw_get_channel_size(pixel); // bytes
-  size_t channels = micro_draw_get_channels(pixel);
+  unsigned int channels = micro_draw_get_channels(pixel);
   int index = (y * data_width + x) * channels * channel_size;
   
-  memcpy(&data[index], color, channels * channel_size);
+  _micro_draw_memcpy(&data[index], color, channels * channel_size);
 
   return;
 }
@@ -443,7 +448,7 @@ micro_draw_overlap(unsigned char* src_data, int src_data_width,
                    int x_offset, int y_offset)
 {
   int channel_size = micro_draw_get_channel_size(src_pixel); // bytes
-  size_t channels = micro_draw_get_channels(src_pixel);
+  unsigned int channels = micro_draw_get_channels(src_pixel);
 
   for (int row = 0; row < src_data_height; ++row)
   {
@@ -608,7 +613,7 @@ micro_draw_get_color(unsigned char* data, int data_width, int data_height,
   if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
 
   int channel_size = micro_draw_get_channel_size(pixel); // bytes
-  size_t channels = micro_draw_get_channels(pixel);
+  unsigned int channels = micro_draw_get_channels(pixel);
   int index = (y * data_width + x) * channels * channel_size;
 
   *color = data + index;
@@ -683,24 +688,17 @@ static inline int _micro_draw_strlen(char* str)
 #define MICRO_DRAW_CHARACTER_PIXELS_X 50
 #define MICRO_DRAW_CHARACTER_PIXELS_Y 50
 
-#include <stdio.h>
-
+_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
+               "MicroDrawPixel has changed, make sure that color_dest in micro_draw_text is enough");
 MICRO_DRAW_DEF void
 micro_draw_text(unsigned char* data, int data_width, int data_height,
                 MicroDrawPixel pixel_data, char* text, int text_x,
                 int text_y, float text_scale, unsigned char* text_color)
 {
   int channel_size = micro_draw_get_channel_size(pixel_data); // bytes
-  size_t channels = micro_draw_get_channels(pixel_data);
-  //int horizontal_chars = _micro_draw_get_horizontal_characters(text);
-  //int vertical_chars = _micro_draw_get_vertical_characters(text);
+  unsigned int channels = micro_draw_get_channels(pixel_data);
   int char_x = MICRO_DRAW_CHARACTER_PIXELS_X * text_scale;
   int char_y = MICRO_DRAW_CHARACTER_PIXELS_Y * text_scale;
-
-  //int box_width = horizontal_chars * char_x;
-  //int box_height = vertical_chars * char_y;
-  //printf("box_width: %d, box_height: %d\n", box_width, box_height);
-
   int text_row = 0;
   int text_col = 0;
   int text_len = _micro_draw_strlen(text);
@@ -723,7 +721,7 @@ micro_draw_text(unsigned char* data, int data_width, int data_height,
 
         // Calculate color
         unsigned char color_dest[4] = {0};
-        for (size_t i = 0; i < channels * channel_size; ++i)
+        for (unsigned int i = 0; i < channels * channel_size; ++i)
           color_dest[i] = text_color[i] * micro_draw_font[(int)text[c]][font_y][font_x];
 
         // Draw with translation
