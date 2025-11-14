@@ -6,9 +6,9 @@
 #
 # Compile flags
 #
-CFLAGS  = -Wall -Werror -Wpedantic -Wextra -ggdb -std=c99
-LDFLAGS = -lX11 -lXrandr
-CC      = gcc
+CFLAGS      = -Wall -Werror -Wpedantic -Wextra -ggdb -std=c99
+LDFLAGS     = -lX11 -lXrandr
+CC          = gcc
 
 #
 # Project files
@@ -24,7 +24,9 @@ TEST_BINS = test/fill_rect_test\
             test/game_of_life_test\
             test/mandelbrot_test\
             test/upscale_nn_test\
-            test/cosu_test
+            test/cosu_test\
+            test/text_test\
+            test/overlap_test
 
 EMCC_FLAGS=-sEXPORTED_RUNTIME_METHODS=["HEAPU8","stringToNewUTF8"]\
            -sEXPORT_ALL=1\

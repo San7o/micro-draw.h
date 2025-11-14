@@ -11,14 +11,16 @@ License: MIT
 Features
 --------
 
- - draw lines
- - draw rectangles
- - draw circles
- - draw triangles
- - draw grids
- - RGBA, easy to add other formats
+ - lines
+ - rectangles
+ - circles
+ - triangles
+ - grids
+ - text
+ - RGBA, Black&White, easily add more formats
  - PPM file reading and writing
-
+ - resize
+ - overlap
 
 Usage
 -----
@@ -69,4 +71,3 @@ TODO
 ----
 
  - Implement micro_draw_from_ppm
- - Add text rendering

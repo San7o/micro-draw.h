@@ -13,8 +13,8 @@
 
 #define SCREEN_WIDTH  500
 #define SCREEN_HEIGHT 500
-#define FRAME_WIDTH   3
-#define FRAME_HEIGHT  3
+#define FRAME_WIDTH   100
+#define FRAME_HEIGHT  100
 #define ITERATIONS    50
 #define FPS           3
 
@@ -52,26 +52,23 @@ void loop(void *arg)
   // Render frame
   unsigned char color_white[] = {255, 255, 255, 255};
   unsigned char color_red[] = {255, 0, 0, 255};
-  for (int y = 0; y < FRAME_HEIGHT; ++y)
-    for (int x = 0; x < FRAME_WIDTH; ++x)
-    {
-      if (y == FRAME_HEIGHT / 2 && x == FRAME_WIDTH / 2)
-      {
-        micro_draw_pixel(app->frame_data, FRAME_WIDTH, FRAME_HEIGHT,
-                         x, y,
-                         color_red, MICRO_DRAW_RGBA8);
-      }
-      else
-      {
-        micro_draw_pixel(app->frame_data, FRAME_WIDTH, FRAME_HEIGHT,
-                         x, y,
-                         color_white, MICRO_DRAW_RGBA8);
-      }
-    }
 
-  micro_draw_scaled(app->frame_data, FRAME_WIDTH, FRAME_HEIGHT, MICRO_DRAW_RGBA8,
-                    app->screen_data, SCREEN_WIDTH, SCREEN_HEIGHT, MICRO_DRAW_RGBA8);
-  
+  micro_draw_fill_rect(app->screen_data,
+                       SCREEN_WIDTH, SCREEN_HEIGHT,
+                       0, 0, SCREEN_WIDTH, SCREEN_WIDTH,
+                       color_white, MICRO_DRAW_RGBA8);
+
+  micro_draw_fill_rect(app->frame_data,
+                       FRAME_WIDTH, FRAME_HEIGHT,
+                       0, 0, FRAME_WIDTH, FRAME_WIDTH,
+                       color_red, MICRO_DRAW_RGBA8);
+
+  micro_draw_overlap(app->frame_data, FRAME_WIDTH,
+                     FRAME_HEIGHT, MICRO_DRAW_RGBA8,
+                     app->screen_data, SCREEN_WIDTH,
+                     SCREEN_HEIGHT, MICRO_DRAW_RGBA8,
+                     100, 100);
+
   RGFW_window_blitSurface(app->win, app->surface);
     
   #ifndef __EMSCRIPTEN__
@@ -87,7 +84,7 @@ int main(void)
 {
   Application app;
   
-	app.win = RGFW_createWindow("upscale nn test",
+	app.win = RGFW_createWindow("overlap test",
                               0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,
                               RGFW_windowCenter
                               | RGFW_windowNoResize
