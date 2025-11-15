@@ -116,6 +116,7 @@ typedef enum {
   MICRO_DRAW_OK = 0,
   MICRO_DRAW_ERROR_OPEN_FILE,
   MICRO_DRAW_ERROR_INVALID_MAGIC_NUMBER,
+  MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE,
   _MICRO_DRAW_ERROR_MAX,
 } MicroDrawError;
 
@@ -733,7 +734,8 @@ micro_draw_text(unsigned char* data, int data_width, int data_height,
   
 #ifdef MICRO_DRAW_PPM
 
-#include <stdio.h>
+#include <stdio.h>  // fread
+#include <stdlib.h> // atoi
 
 // The PPM header starts with 4 values speareted by either space or
 // newline: ID, WIDTH, HEIGHT, MAX_COLOR_VALUE.
@@ -798,20 +800,37 @@ micro_draw_to_ppm(const char *filename, unsigned char *data,
 
 static inline int _micro_draw_strcmp(const char *s1, const char *s2)
 {
-  while (*s1 == *s2)
-  {
-    if (*s1 == '\0' && *s2 == '\0')
-      return 0;
+  while (*s1 == *s2) {
     s1++;
     s2++;
   }
+  if (*s2 == '\0')
+    return 0;
   return 1;
 }
 
+static inline int _micro_draw_is_whitespace(char c)
+{
+  return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+}
+
+typedef enum {
+  _MICRO_DRAW_P1 = 0,
+  _MICRO_DRAW_P2,
+  _MICRO_DRAW_P3,
+  _MICRO_DRAW_P4,
+  _MICRO_DRAW_P5,
+  _MICRO_DRAW_P6,
+} _MicroDrawPPMType;
+
+_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
+               "Updated MicroDrawPixel, should also update micro_from_to_ppm");
 MICRO_DRAW_DEF MicroDrawError
 micro_draw_from_ppm(const char* filename, unsigned char **data,
                     int *data_width, int *data_height, MicroDrawPixel *pixel)
 {
+  _MicroDrawPPMType file_type = 0;
+  int color_max = 0;
   MicroDrawError error = MICRO_DRAW_OK;
   FILE *file = fopen(filename, "r");
   if (file == NULL)
@@ -820,20 +839,97 @@ micro_draw_from_ppm(const char* filename, unsigned char **data,
     return MICRO_DRAW_ERROR_OPEN_FILE;
   }
 
+  // Parse header ----------------------------------------------------
+  
   char magic[3];
   fread(magic, 1, 3, file);
-  if (_micro_draw_strcmp(magic, "P6\n") != 0)
+  if (_micro_draw_strcmp(magic, "P1") == 0)
   {
+    file_type = _MICRO_DRAW_P1;
+  } else if (_micro_draw_strcmp(magic, "P2") == 0)
+  {
+    file_type = _MICRO_DRAW_P2;
+  } else if (_micro_draw_strcmp(magic, "P3") == 0)
+  {
+    file_type = _MICRO_DRAW_P3;
+  } else if (_micro_draw_strcmp(magic, "P4") == 0)
+  {
+    file_type = _MICRO_DRAW_P4;
+  } else if (_micro_draw_strcmp(magic, "P5") == 0)
+  {
+    file_type = _MICRO_DRAW_P5;
+  } else if (_micro_draw_strcmp(magic, "P6") == 0)
+  {
+    file_type = _MICRO_DRAW_P6;
+  }
+  else {
     error = MICRO_DRAW_ERROR_INVALID_MAGIC_NUMBER;
     goto done;
   }
 
+  // Data width
+  {
+    char num_buff[30] = {0};
+    int position = 0;
+    do
+    {
+      fread(num_buff + position, 1, 1, file);
+      position++;
+    } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
+    *data_width = atoi(num_buff);
+    if (*data_width == 0)
+    {
+      error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
+      goto done;
+    }
+  }
+
+  // Data height
+  {
+    char num_buff[30] = {0};
+    int position = 0;
+    do
+    {
+      fread(num_buff + position, 1, 1, file);
+      position++;
+    } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
+    *data_height = atoi(num_buff);
+    if (*data_width == 0)
+    {
+      error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
+      goto done;
+    }
+  }
+
+  // Color max
+  if (file_type != _MICRO_DRAW_P1 && file_type != _MICRO_DRAW_P4)
+  {
+    char num_buff[30] = {0};
+    int position = 0;
+    do
+    {
+      fread(num_buff + position, 1, 1, file);
+      position++;
+    } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
+    color_max = atoi(num_buff);
+    if (*data_width == 0)
+    {
+      error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
+      goto done;
+    }
+  }
+
+  // Parse raster ----------------------------------------------------
+  
   // TODO
   (void) data;
   (void) data_width;
   (void) data_height;
   (void) pixel;
-  assert(0); // Not implemented
+  (void) color_max;
+  (void) file_type;
+  
+  assert(0 && "Not implemented");
   
  done:
   fclose(file);
